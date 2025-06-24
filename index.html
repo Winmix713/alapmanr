@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="hu">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WinMix - Professional Football Prediction Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.0.0/fonts/remixicon.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            300: '#86efac',
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        },
+                        'secondary': {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        },
+                        'accent': {
+                            50: '#fef3c7',
+                            100: '#fde68a',
+                            200: '#fcd34d',
+                            300: '#f59e0b',
+                            400: '#d97706',
+                            500: '#b45309',
+                            600: '#92400e',
+                            700: '#78350f',
+                            800: '#451a03',
+                            900: '#365314',
+                        }
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out forwards',
+                        'slide-up': 'slideUp 0.3s ease-out forwards',
+                        'scale-in': 'scaleIn 0.2s ease-out forwards',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                        },
+                        scaleIn: {
+                            '0%': { opacity: '0', transform: 'scale(0.95)' },
+                            '100%': { opacity: '1', transform: 'scale(1)' }
+                        }
+                    },
+                    boxShadow: {
+                        'elevation-1': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+                        'elevation-2': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                        'elevation-3': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                        'elevation-4': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            --secondary-gradient: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            --accent-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            min-height: 100vh;
+        }
+
+        .bg-glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .bg-glass-dark {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .gradient-primary {
+            background: var(--primary-gradient);
+        }
+
+        .gradient-secondary {
+            background: var(--secondary-gradient);
+        }
+
+        .gradient-accent {
+            background: var(--accent-gradient);
+        }
+
+        .card {
+            @apply bg-glass rounded-2xl p-6 shadow-elevation-2 transition-all duration-300;
+        }
+
+        .card:hover {
+            @apply shadow-elevation-3 transform translate-y-[-2px];
+        }
+
+        .btn-primary {
+            @apply gradient-primary text-white font-semibold px-6 py-3 rounded-xl shadow-elevation-2 transition-all duration-300 hover:shadow-elevation-3 hover:transform hover:translate-y-[-1px] focus:outline-none focus:ring-4 focus:ring-primary-500/30;
+        }
+
+        .btn-secondary {
+            @apply bg-secondary-800 text-white font-semibold px-6 py-3 rounded-xl shadow-elevation-1 transition-all duration-300 hover:bg-secondary-700 hover:shadow-elevation-2 focus:outline-none focus:ring-4 focus:ring-secondary-500/30;
+        }
+
+        .btn-ghost {
+            @apply text-white/80 font-semibold px-4 py-2 rounded-lg transition-all duration-300 hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-white/20;
+        }
+
+        .input-field {
+            @apply bg-glass-dark text-white placeholder-white/50 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-500/20 transition-all duration-300;
+        }
+
+        .nav-link {
+            @apply flex flex-col items-center text-white/60 hover:text-primary-400 transition-all duration-300 transform hover:scale-105;
+        }
+
+        .nav-link.active {
+            @apply text-primary-400;
+        }
+
+        .prediction-card {
+            @apply card cursor-pointer transition-all duration-300;
+            animation: fadeIn 0.5s ease-out forwards;
+            opacity: 0;
+        }
+
+        .prediction-card:hover {
+            @apply bg-glass border-primary-500/30;
+        }
+
+        .stats-card {
+            @apply bg-glass-dark rounded-xl p-4 text-center transition-all duration-300 hover:bg-glass;
+        }
+
+        .loading-spinner {
+            @apply inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500;
+        }
+
+        .modal-overlay {
+            @apply fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 opacity-0 invisible transition-all duration-300;
+        }
+
+        .modal-overlay.active {
+            @apply opacity-100 visible;
+        }
+
+        .modal-content {
+            @apply bg-glass-dark rounded-2xl p-8 max-w-md w-full mx-4 transform scale-95 transition-all duration-300;
+        }
+
+        .modal-overlay.active .modal-content {
+            @apply scale-100;
+        }
+
+        .tooltip {
+            @apply relative group cursor-help;
+        }
+
+        .tooltip-text {
+            @apply absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 text-sm bg-secondary-900 text-white rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 whitespace-nowrap z-10;
+        }
+
+        .team-logo {
+            @apply w-10 h-10 rounded-full object-cover shadow-elevation-1 transition-all duration-300;
+        }
+
+        .match-selector {
+            @apply bg-glass rounded-xl p-4 transition-all duration-300 hover:bg-glass border border-white/5 hover:border-primary-500/20;
+        }
+
+        @media (max-width: 768px) {
+            .card {
+                @apply p-4;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-secondary-900 text-white">
+    <!-- Navigation Header -->
+    <header class="sticky top-0 z-40 bg-glass-dark backdrop-blur-xl border-b border-white/10">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <!-- Logo & Brand -->
+                <div class="flex items-center space-x-4">
+                    <div class="gradient-primary p-2 rounded-xl">
+                        <i class="ri-football-line text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
+                            WinMix
+                        </h1>
+                        <p class="text-sm text-white/60">Professional Football Analytics</p>
+                    </div>
+                </div>
+
+                <!-- User Profile Section -->
+                <div id="userSection" class="flex items-center space-x-4">
+                    <div id="timerDisplay" class="gradient-accent px-4 py-2 rounded-xl font-bold text-white shadow-elevation-2">
+                        <i class="ri-time-line mr-2"></i>
+                        <span id="timerText">6:15</span>
+                    </div>
+                    
+                    <div id="guestMode" class="flex items-center space-x-3">
+                        <span class="text-white/80">Vendég</span>
+                        <button id="loginBtn" class="btn-primary">
+                            <i class="ri-login-line mr-2"></i>
+                            Bejelentkezés
+                        </button>
+                    </div>
+
+                    <div id="userMode" class="hidden flex items-center space-x-3">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-8 h-8 gradient-primary rounded-full flex items-center justify-center">
+                                <i class="ri-user-line text-white"></i>
+                            </div>
+                            <span id="loggedInUsername" class="font-medium">Felhasználó</span>
+                        </div>
+                        <button id="logoutBtn" class="btn-ghost">
+                            <i class="ri-logout-line mr-1"></i>
+                            Kilépés
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main id="mainContent" class="container mx-auto px-6 py-8 space-y-8">
+        <!-- Hero Section -->
+        <div id="heroSection" class="text-center py-12">
+            <h2 class="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">
+                Előrejelzések új szinten
+            </h2>
+            <p class="text-xl text-white/70 mb-8 max-w-2xl mx-auto leading-relaxed">
+                7 fejlett algoritmus, 82,000+ mérkőzés adatbázis és valós idejű analitika a legpontosabb futball előrejelzésekért.
+            </p>
+            <div class="flex justify-center space-x-4">
+                <button id="startPredictionBtn" class="btn-primary text-lg px-8 py-4">
+                    <i class="ri-play-line mr-2"></i>
+                    Előrejelzés indítása
+                </button>
+                <button id="viewStatsBtn" class="btn-secondary text-lg px-8 py-4">
+                    <i class="ri-bar-chart-line mr-2"></i>
+                    Statisztikák
+                </button>
+            </div>
+        </div>
+
+        <!-- Match Selection Section -->
+        <div id="matchSelection" class="hidden">
+            <div class="card max-w-6xl mx-auto">
+                <div class="flex items-center justify-between mb-8">
+                    <div>
+                        <h3 class="text-3xl font-bold text-white mb-2">Mérkőzések kiválasztása</h3>
+                        <p class="text-white/70">Válaszd ki a mérkőzéseket az előrejelzéshez</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-2xl font-bold text-primary-400" id="selectedCount">0/8</div>
+                        <div class="text-sm text-white/60">Kiválasztott mérkőzések</div>
+                    </div>
+                </div>
+
+                <!-- Search & Filter -->
+                <div class="grid md:grid-cols-2 gap-4 mb-8">
+                    <div class="relative">
+                        <i class="ri-search-line absolute left-4 top-1/2 transform -translate-y-1/2 text-white/50"></i>
+                        <input type="text" id="searchMatches" placeholder="Keresés csapatok között..." 
+                               class="input-field w-full pl-12">
+                    </div>
+                    <div class="relative">
+                        <i class="ri-filter-line absolute left-4 top-1/2 transform -translate-y-1/2 text-white/50"></i>
+                        <select id="leagueFilter" class="input-field w-full pl-12 appearance-none">
+                            <option value="">Minden liga</option>
+                            <option value="premier-league">Premier League</option>
+                            <option value="la-liga">La Liga</option>
+                            <option value="bundesliga">Bundesliga</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Match Grid -->
+                <div id="matchGrid" class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"></div>
+
+                <!-- Action Buttons -->
+                <div class="flex justify-center space-x-4">
+                    <button id="addRandomMatchBtn" class="btn-secondary">
+                        <i class="ri-shuffle-line mr-2"></i>
+                        Véletlenszerű hozzáadás
+                    </button>
+                    <button id="runPredictions" class="btn-primary disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        <i class="ri-flash-line mr-2"></i>
+                        <span>Előrejelzések futtatása</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prediction Results -->
+        <div id="predictionResults" class="hidden">
+            <div class="card">
+                <div class="flex items-center justify-between mb-8">
+                    <div>
+                        <h3 class="text-3xl font-bold text-white mb-2">Előrejelzés eredmények</h3>
+                        <p class="text-white/70">7 algoritmus alapján készített predikcióid</p>
+                    </div>
+                    <div class="flex space-x-4">
+                        <select id="sortPredictions" class="input-field">
+                            <option value="predictionScore">Pontszám szerint</option>
+                            <option value="averageGoals">Gólátlag szerint</option>
+                            <option value="btts">BTTS szerint</option>
+                            <option value="matchName">Név szerint</option>
+                        </select>
+                        <select id="predictionAlgorithm" class="input-field">
+                            <option value="default">Alapértelmezett</option>
+                            <option value="attackDefense">Támadás-Védelem</option>
+                            <option value="seasonalTrends">Szezonális trendek</option>
+                            <option value="machineLearning">Gépi tanulás</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div id="predictionGrid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </div>
+        </div>
+
+        <!-- Statistics Section -->
+        <div id="statisticsSection" class="hidden">
+            <div class="card">
+                <div class="text-center mb-8">
+                    <h3 class="text-3xl font-bold text-white mb-2">Részletes statisztikák</h3>
+                    <p class="text-white/70">Mélyebb betekintés az előrejelzési adatokba</p>
+                </div>
+
+                <!-- Overview Stats -->
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+                    <div class="stats-card">
+                        <div class="text-2xl font-bold text-primary-400" id="totalPredictions">0</div>
+                        <div class="text-sm text-white/60 mt-1">Összes predikció</div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="text-2xl font-bold text-primary-400" id="averageGoals">0</div>
+                        <div class="text-sm text-white/60 mt-1">Átlagos gólszám</div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="text-2xl font-bold text-primary-400" id="mostCommonResult">N/A</div>
+                        <div class="text-sm text-white/60 mt-1">Leggyakoribb</div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="text-2xl font-bold text-primary-400" id="avgPredictionScore">0</div>
+                        <div class="text-sm text-white/60 mt-1">Átlagos pontszám</div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="text-2xl font-bold text-primary-400" id="homeWinPercentage">0%</div>
+                        <div class="text-sm text-white/60 mt-1">Hazai győzelem</div>
+                    </div>
+                    <div class="stats-card">
+                        <div class="text-2xl font-bold text-primary-400" id="bttsPercentage">0%</div>
+                        <div class="text-sm text-white/60 mt-1">BTTS %</div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-glass-dark rounded-xl p-6">
+                        <h4 class="text-xl font-semibold mb-4">Pontszám eloszlás</h4>
+                        <canvas id="predictionScoreDistribution" class="w-full h-64"></canvas>
+                    </div>
+                    <div class="bg-glass-dark rounded-xl p-6">
+                        <h4 class="text-xl font-semibold mb-4">Gólok eloszlása</h4>
+                        <canvas id="goalsDistribution" class="w-full h-64"></canvas>
+                    </div>
+                    <div class="bg-glass-dark rounded-xl p-6">
+                        <h4 class="text-xl font-semibold mb-4">Forma index trend</h4>
+                        <canvas id="formIndexTrend" class="w-full h-64"></canvas>
+                    </div>
+                    <div class="bg-glass-dark rounded-xl p-6">
+                        <h4 class="text-xl font-semibold mb-4">Eredmények megoszlása</h4>
+                        <canvas id="resultDistribution" class="w-full h-64"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-glass-dark backdrop-blur-xl border-t border-white/10 z-30">
+        <div class="container mx-auto px-6">
+            <div class="flex justify-around py-4">
+                <a href="#" id="homeLink" class="nav-link active">
+                    <i class="ri-home-line text-2xl mb-1"></i>
+                    <span class="text-xs font-medium">Főoldal</span>
+                </a>
+                <a href="#" id="statisticsLink" class="nav-link">
+                    <i class="ri-bar-chart-line text-2xl mb-1"></i>
+                    <span class="text-xs font-medium">Statisztikák</span>
+                </a>
+                <a href="#" id="favoritesLink" class="nav-link">
+                    <i class="ri-star-line text-2xl mb-1"></i>
+                    <span class="text-xs font-medium">Kedvencek</span>
+                </a>
+                <a href="#" id="recentLink" class="nav-link">
+                    <i class="ri-history-line text-2xl mb-1"></i>
+                    <span class="text-xs font-medium">Legutóbbi</span>
+                </a>
+                <a href="#" id="settingsLink" class="nav-link">
+                    <i class="ri-settings-line text-2xl mb-1"></i>
+                    <span class="text-xs font-medium">Beállítások</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-bold text-white">Bejelentkezés</h3>
+                <button id="closeModalBtn" class="text-white/60 hover:text-white transition-colors">
+                    <i class="ri-close-line text-2xl"></i>
+                </button>
+            </div>
+            
+            <form id="loginForm" class="space-y-6">
+                <div>
+                    <label for="loginEmail" class="block text-sm font-medium text-white/80 mb-2">Email cím</label>
+                    <input type="email" id="loginEmail" required class="input-field w-full" 
+                           placeholder="email@example.com">
+                </div>
+                <div>
+                    <label for="loginPassword" class="block text-sm font-medium text-white/80 mb-2">Jelszó</label>
+                    <input type="password" id="loginPassword" required class="input-field w-full" 
+                           placeholder="••••••••">
+                </div>
+                <div id="loginError" class="hidden text-red-400 text-sm"></div>
+                <button type="submit" class="btn-primary w-full">
+                    <i class="ri-login-line mr-2"></i>
+                    Bejelentkezés
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+        <div class="text-center">
+            <div class="loading-spinner mb-4"></div>
+            <p class="text-white font-medium">Előrejelzések futtatása...</p>
+            <p class="text-white/60 text-sm mt-2">Ez eltarthat néhány másodpercig</p>
+        </div>
+    </div>
+
+    <script>
+        // Constants and Configuration
+        const CONFIG = {
+            TIMER_DURATION: 375,
+            API_BASE_URL: 'fullapi.php',
+            MATCH_SLOTS: 8,
+            ANIMATION_DELAY: 100,
+            STORAGE_KEYS: {
+                FAVORITES: 'favoritePredictions',
+                RECENT: 'recentPredictions',
+                USER: 'loggedInUser',
+                SETTINGS: 'userSettings'
+            }
+        };
+
+        // Teams Database
+        const TEAMS = [
+            { id: "arsenal", name: "Arsenal", logoUrl: "https://resources.premierleague.com/premierleague/badges/50/t3.png", league: "premier-league" },
+            { id: "astonvilla", name: "Aston Villa", logoUrl: "https://resources.premierleague.com/premierleague/badges/50/t7.png", league: "premier-league" },
+            { id: "brentford", name: "Brentford", logoUrl: "https://resources.premierleague.com/premierleague/badges/50/t94.png", league: "premier-league" },
+            { id: "brighton", name: "Brighton", logoUrl: "https://resources.premierleague.com/premierleague/badges/50/t36.png", league: "premier-league" },
+            { id: "chelsea", name: "Chelsea", logoUrl: "https://resources.premierleague.com/premierleague/badges/50/t8.png", league: "premier-league" },
+            { id: "palace", name: "Crystal Palace", logoUrl: "https://resources.premierleague.com/premierleague/badges/50/t31.png", league: "premier-league" },
+            { id: "everton", name: "Everton", logoUrl: "https://resources.premierleague.com/premierleague/badges/50/t11.png", league: "premier-league" },
+            { id: "fulham", name: "Fulham", logoUrl: "https://resources.premierleague.com/premierleague/badges/50/t54.png", league: "premier-league" },
+            { id: "liverpool", name: "Liverpool", logoUrl: "https://resources.premierleague.com/premierleague/badges/50/t14.png", league: "premier-league" },
+            { id: "mancity", name: "Manchester City", logoUrl: "https://resources.premierleague.com/premierleague/badges/50/t43.png", league: "premier-league" },
+            { id: "newcastle", name: "Newcastle", logoUrl: "https://resources.premierleague.com/premierleague/badges/50/t4.png", league: "premier-league" },
+            { id: "nottingham", name: "Nottingham Forest", logoUrl: "https://resources.premierleague.com/premierleague/badges/50/t17.png", league: "premier-league" },
+            { id: "tottenham", name: "Tottenham", logoUrl: "https://resources.premierleague.com/premierleague/badges/50/t6.png", league: "premier-league" },
+            { id: "manutd", name: "Manchester United", logoUrl: "https://resources.premierleague.com/premierleague/badges/50/t1.png", league: "premier-league" },
+            { id: "westham", name: "West Ham", logoUrl: "https://resources.premierleague.com/premierleague/badges/50/t21.png", league: "premier-league" },
+            { id: "wolves", name: "Wolverhampton", logoUrl: "https://resources.premierleague.com/premierleague/badges/50/t39.png", league: "premier-league" }
+        ].sort((a, b) => a.name.localeCompare(b.name));
+
+        // Global State
+        let appState = {
+            timeLeft: CONFIG.TIMER_DURATION,
+            selectedMatches: Array(CONFIG.MATCH_SLOTS).fill(null).map(() => ({ homeTeam: null, awayTeam: null })),
+            predictions: [],
+            recentPredictions: [],
+            favoritePredictions: [],
+            loggedInUser: null,
+            currentView: 'home',
+            userSettings: {
+                darkMode: true,
+                language: 'hu',
+                notifications: true
+            }
+        };
+
+        // Utility Functions
+        const $ = (id) => document.getElementById(id);
+        const $$ = (selector) => document.querySelectorAll(selector);
+
+        const safeLocalStorage = {
+            get: (key) => {
+                try {
+                    return localStorage.getItem(key);
+                } catch (e) {
+                    console.warn('localStorage get failed:', e);
+                    return null;
+                }
+            },
+            set: (key, value) => {
+                try {
+                    localStorage.setItem(key, value);
+                } catch (e) {
+                    console.warn('localStorage set failed:', e);
+                }
+            },
+            remove: (key) => {
+                try {
+                    localStorage.removeItem(key);
+                } catch (e) {
+                    console.warn('localStorage remove failed:', e);
+                }
+            }
+        };
+
+        const showNotification = (message, type = 'info') => {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-xl shadow-elevation-3 text-white max-w-sm animate-slide-up`;
+            
+            switch (type) {
+                case 'success':
+                    notification.classList.add('bg-primary-600');
+                    break;
+                case 'error':
+                    notification.classList.add('bg-red-600');
+                    break;
+                case 'warning':
+                    notification.classList.add('bg-amber-600');
+                    break;
+                default:
+                    notification.classList.add('bg-secondary-700');
+            }
+
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <i class="ri-information-line text-lg mr-3"></i>
+                    <span>${message}</span>
+                    <button class="ml-auto text-white/80 hover:text-white" onclick="this.closest('.fixed').remove()">
+                        <i class="ri-close-line"></i>
+                    </button>
+                </div>
+            `;
+
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        };
+
+        const showLoading = (show = true) => {
+            const overlay = $('loadingOverlay');
+            if (show) {
+                overlay.classList.remove('hidden');
+            } else {
+                overlay.classList.add('hidden');
+            }
+        };
+
+        // Timer Functions
+        const updateTimer = () => {
+            const minutes = Math.floor(appState.timeLeft / 60);
+            const seconds = appState.timeLeft % 60;
+            $('timerText').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        };
+
+        const startTimer = () => {
+            updateTimer();
+            const timer = setInterval(() => {
+                appState.timeLeft--;
+                updateTimer();
+                
+                if (appState.timeLeft <= 0) {
+                    clearInterval(timer);
+                    $('runPredictions').disabled = true;
+                    showNotification('Az idő lejárt! Már nem futtathatók előrejelzések.', 'warning');
+                }
+            }, 1000);
+        };
+
+        // Match Selection Functions
+        const isTeamSelected = (teamId) => {
+            return appState.selectedMatches.some(match =>
+                match?.homeTeam?.id === teamId || match?.awayTeam?.id === teamId
+            );
+        };
+
+        const updateSelectedCount = () => {
+            const count = appState.selectedMatches.filter(match => 
+                match.homeTeam && match.awayTeam
+            ).length;
+            $('selectedCount').textContent = `${count}/${CONFIG.MATCH_SLOTS}`;
+            $('runPredictions').disabled = count === 0 || appState.timeLeft <= 0;
+        };
+
+        const handleTeamSelect = (index, position, teamId) => {
+            const team = TEAMS.find(t => t.id === teamId);
+            
+            if (position === 'home') {
+                appState.selectedMatches[index].homeTeam = team || null;
+            } else {
+                appState.selectedMatches[index].awayTeam = team || null;
+            }
+            
+            updateSelectedCount();
+            renderMatchGrid();
+        };
+
+        const createMatchSelector = (index, match) => {
+            return `
+                <div class="match-selector">
+                    <div class="text-center mb-4">
+                        <div class="text-sm font-medium text-white/60">Mérkőzés ${index + 1}</div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <!-- Home Team -->
+                        <div class="relative">
+                            <select id="homeTeam${index}" class="input-field w-full pr-12" onchange="handleTeamSelect(${index}, 'home', this.value)">
+                                <option value="">Hazai csapat</option>
+                                ${TEAMS.map(team => `
+                                    <option value="${team.id}" ${match.homeTeam?.id === team.id ? 'selected' : ''} 
+                                            ${isTeamSelected(team.id) && match.homeTeam?.id !== team.id ? 'disabled' : ''}>
+                                        ${team.name}
+                                    </option>
+                                `).join('')}
+                            </select>
+                            ${match.homeTeam ? `
+                                <img src="${match.homeTeam.logoUrl}" alt="${match.homeTeam.name}" 
+                                     class="team-logo absolute right-3 top-1/2 transform -translate-y-1/2">
+                            ` : ''}
+                        </div>
+
+                        <!-- VS -->
+                        <div class="text-center">
+                            <div class="bg-glass-dark rounded-full w-8 h-8 flex items-center justify-center mx-auto">
+                                <span class="text-xs font-bold text-primary-400">VS</span>
+                            </div>
+                        </div>
+
+                        <!-- Away Team -->
+                        <div class="relative">
+                            <select id="awayTeam${index}" class="input-field w-full pr-12" onchange="handleTeamSelect(${index}, 'away', this.value)">
+                                <option value="">Vendég csapat</option>
+                                ${TEAMS.map(team => `
+                                    <option value="${team.id}" ${match.awayTeam?.id === team.id ? 'selected' : ''} 
+                                            ${isTeamSelected(team.id) && match.awayTeam?.id !== team.id ? 'disabled' : ''}>
+                                        ${team.name}
+                                    </option>
+                                `).join('')}
+                            </select>
+                            ${match.awayTeam ? `
+                                <img src="${match.awayTeam.logoUrl}" alt="${match.awayTeam.name}" 
+                                     class="team-logo absolute right-3 top-1/2 transform -translate-y-1/2">
+                            ` : ''}
+                        </div>
+                    </div>
+
+                    ${match.homeTeam && match.awayTeam ? `
+                        <div class="mt-4 text-center">
+                            <div class="bg-primary-500/20 text-primary-400 px-3 py-1 rounded-full text-xs font-medium">
+                                <i class="ri-check-line mr-1"></i>
+                                Készen áll
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        };
+
+        const renderMatchGrid = () => {
+            const grid = $('matchGrid');
+            grid.innerHTML = appState.selectedMatches
+                .map((match, index) => createMatchSelector(index, match))
+                .join('');
+        };
+
+        // Prediction Functions
+        const runPredictions = async () => {
+            const validMatches = appState.selectedMatches.filter(match => 
+                match.homeTeam && match.awayTeam
+            );
+
+            if (validMatches.length === 0) {
+                showNotification('Válassz ki legalább egy mérkőzést!', 'warning');
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                // Simulate API call
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                const predictions = validMatches.map(match => ({
+                    match,
+                    teamAnalysis: {
+                        predictionScore: Math.random() * 10,
+                        head_to_head_stats: {
+                            home_wins: Math.floor(Math.random() * 10),
+                            away_wins: Math.floor(Math.random() * 10),
+                            draws: Math.floor(Math.random() * 5)
+                        },
+                        average_goals: {
+                            average_total_goals: (Math.random() * 4 + 0.5).toFixed(1)
+                        },
+                        both_teams_scored_percentage: Math.random() * 100
+                    }
+                }));
+
+                appState.predictions = predictions;
+                appState.recentPredictions = [...predictions, ...appState.recentPredictions].slice(0, 20);
+                
+                // Save to localStorage
+                safeLocalStorage.set(CONFIG.STORAGE_KEYS.RECENT, JSON.stringify(appState.recentPredictions));
+
+                showView('predictionResults');
+                renderPredictionResults();
+                showNotification('Előrejelzések sikeresen elkészültek!', 'success');
+
+            } catch (error) {
+                console.error('Prediction error:', error);
+                showNotification('Hiba történt az előrejelzések futtatása során.', 'error');
+            } finally {
+                showLoading(false);
+            }
+        };
+
+        const renderPredictionResults = () => {
+            const grid = $('predictionGrid');
+            
+            grid.innerHTML = appState.predictions.map((prediction, index) => {
+                const { match, teamAnalysis } = prediction;
+                const predictionScore = teamAnalysis.predictionScore?.toFixed(1) || 'N/A';
+                const avgGoals = teamAnalysis.average_goals?.average_total_goals || '0';
+                const bttsPercent = teamAnalysis.both_teams_scored_percentage?.toFixed(1) || '0';
+
+                return `
+                    <div class="prediction-card" style="animation-delay: ${index * CONFIG.ANIMATION_DELAY}ms">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <img src="${match.homeTeam.logoUrl}" alt="${match.homeTeam.name}" class="team-logo">
+                                <span class="font-medium">${match.homeTeam.name}</span>
+                            </div>
+                            <div class="text-primary-400 font-bold">VS</div>
+                            <div class="flex items-center space-x-3">
+                                <span class="font-medium">${match.awayTeam.name}</span>
+                                <img src="${match.awayTeam.logoUrl}" alt="${match.awayTeam.name}" class="team-logo">
+                            </div>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-white/70">Predikciós pontszám:</span>
+                                <span class="font-bold text-primary-400">${predictionScore}</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-white/70">Várható gólok:</span>
+                                <span class="font-bold">${avgGoals}</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-white/70">BTTS valószínűség:</span>
+                                <span class="font-bold">${bttsPercent}%</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 flex space-x-2">
+                            <button onclick="toggleFavorite(${index})" class="btn-ghost flex-1 text-sm">
+                                <i class="ri-star-line mr-1"></i>
+                                Kedvenc
+                            </button>
+                            <button onclick="sharePrediction(${index})" class="btn-ghost flex-1 text-sm">
+                                <i class="ri-share-line mr-1"></i>
+                                Megosztás
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        };
+
+        // Navigation Functions
+        const showView = (viewName) => {
+            // Hide all sections
+            ['heroSection', 'matchSelection', 'predictionResults', 'statisticsSection'].forEach(id => {
+                $(id)?.classList.add('hidden');
+            });
+
+            // Update nav links
+            $$('.nav-link').forEach(link => link.classList.remove('active'));
+
+            // Show selected view
+            switch (viewName) {
+                case 'home':
+                    $('heroSection').classList.remove('hidden');
+                    $('homeLink').classList.add('active');
+                    break;
+                case 'matchSelection':
+                    $('matchSelection').classList.remove('hidden');
+                    renderMatchGrid();
+                    break;
+                case 'predictionResults':
+                    $('predictionResults').classList.remove('hidden');
+                    break;
+                case 'statistics':
+                    $('statisticsSection').classList.remove('hidden');
+                    $('statisticsLink').classList.add('active');
+                    updateStatistics();
+                    renderCharts();
+                    break;
+            }
+
+            appState.currentView = viewName;
+        };
+
+        // Statistics Functions
+        const updateStatistics = () => {
+            const predictions = appState.predictions;
+            if (predictions.length === 0) return;
+
+            $('totalPredictions').textContent = predictions.length;
+            $('averageGoals').textContent = calculateAverageGoals(predictions);
+            $('mostCommonResult').textContent = getMostCommonResult(predictions);
+            $('avgPredictionScore').textContent = calculateAveragePredictionScore(predictions).toFixed(2);
+            $('homeWinPercentage').textContent = calculateHomeWinPercentage(predictions).toFixed(1) + '%';
+            $('bttsPercentage').textContent = calculateBTTSPercentage(predictions).toFixed(1) + '%';
+        };
+
+        const calculateAveragePredictionScore = (predictions) => {
+            return predictions.reduce((sum, pred) => sum + (pred.teamAnalysis.predictionScore || 0), 0) / predictions.length;
+        };
+
+        const calculateHomeWinPercentage = (predictions) => {
+            const homeWins = predictions.filter(pred =>
+                pred.teamAnalysis.head_to_head_stats.home_wins > pred.teamAnalysis.head_to_head_stats.away_wins
+            ).length;
+            return (homeWins / predictions.length) * 100;
+        };
+
+        const calculateBTTSPercentage = (predictions) => {
+            return predictions.reduce((sum, pred) => sum + (pred.teamAnalysis.both_teams_scored_percentage || 0), 0) / predictions.length;
+        };
+
+        const calculateAverageGoals = (predictions) => {
+            const totalGoals = predictions.reduce((sum, pred) => {
+                const avgGoals = parseFloat(pred.teamAnalysis.average_goals.average_total_goals);
+                return isNaN(avgGoals) ? sum : sum + avgGoals;
+            }, 0);
+            return (totalGoals / predictions.length).toFixed(2);
+        };
+
+        const getMostCommonResult = (predictions) => {
+            const results = predictions.map(pred => {
+                const homeWins = pred.teamAnalysis.head_to_head_stats.home_wins || 0;
+                const awayWins = pred.teamAnalysis.head_to_head_stats.away_wins || 0;
+                if (homeWins > awayWins) return 'Hazai';
+                if (awayWins > homeWins) return 'Vendég';
+                return 'Döntetlen';
+            });
+
+            const resultCounts = results.reduce((counts, result) => {
+                counts[result] = (counts[result] || 0) + 1;
+                return counts;
+            }, {});
+
+            let mostCommon = null;
+            let maxCount = 0;
+
+            for (const result in resultCounts) {
+                if (resultCounts[result] > maxCount) {
+                    mostCommon = result;
+                    maxCount = resultCounts[result];
+                }
+            }
+
+            return mostCommon || 'N/A';
+        };
+
+        // Chart Functions
+        const renderCharts = () => {
+            // Implementation for charts would go here
+            // This is a placeholder - you would implement actual Chart.js charts
+            console.log('Rendering charts...');
+        };
+
+        // Authentication Functions
+        const showLoginModal = () => {
+            $('loginModal').classList.add('active');
+        };
+
+        const hideLoginModal = () => {
+            $('loginModal').classList.remove('active');
+        };
+
+        const handleLogin = (e) => {
+            e.preventDefault();
+            const email = $('loginEmail').value.trim();
+            const password = $('loginPassword').value.trim();
+
+            if (!email || !password) {
+                $('loginError').textContent = 'Kérjük töltsd ki mindkét mezőt.';
+                $('loginError').classList.remove('hidden');
+                return;
+            }
+
+            // Simulate authentication
+            if (email === 'admin@winmix.hu' && password === 'admin') {
+                appState.loggedInUser = { email, name: 'Admin User' };
+                safeLocalStorage.set(CONFIG.STORAGE_KEYS.USER, JSON.stringify(appState.loggedInUser));
+                updateUserDisplay();
+                hideLoginModal();
+                showNotification('Sikeres bejelentkezés!', 'success');
+            } else {
+                $('loginError').textContent = 'Hibás email cím vagy jelszó.';
+                $('loginError').classList.remove('hidden');
+            }
+        };
+
+        const handleLogout = () => {
+            appState.loggedInUser = null;
+            safeLocalStorage.remove(CONFIG.STORAGE_KEYS.USER);
+            updateUserDisplay();
+            showNotification('Sikeres kijelentkezés!', 'success');
+        };
+
+        const updateUserDisplay = () => {
+            const guestMode = $('guestMode');
+            const userMode = $('userMode');
+
+            if (appState.loggedInUser) {
+                guestMode.classList.add('hidden');
+                userMode.classList.remove('hidden');
+                $('loggedInUsername').textContent = appState.loggedInUser.name || appState.loggedInUser.email;
+            } else {
+                guestMode.classList.remove('hidden');
+                userMode.classList.add('hidden');
+            }
+        };
+
+        // Helper Functions
+        const toggleFavorite = (index) => {
+            // Implementation for favorite toggle would go here
+            showNotification('Kedvencekhez adva!', 'success');
+        };
+
+        const sharePrediction = (index) => {
+            // Implementation for sharing would go here
+            showNotification('Megosztás funkció hamarosan!', 'info');
+        };
+
+        const filterMatches = () => {
+            const searchTerm = $('searchMatches').value.toLowerCase();
+            const leagueFilter = $('leagueFilter').value;
+
+            // This would filter the teams and re-render the match grid
+            renderMatchGrid();
+        };
+
+        // Event Listeners
+        const initEventListeners = () => {
+            // Navigation
+            $('homeLink').addEventListener('click', (e) => {
+                e.preventDefault();
+                showView('home');
+            });
+
+            $('statisticsLink').addEventListener('click', (e) => {
+                e.preventDefault();
+                showView('statistics');
+            });
+
+            // Hero section buttons
+            $('startPredictionBtn').addEventListener('click', () => {
+                showView('matchSelection');
+            });
+
+            $('viewStatsBtn').addEventListener('click', () => {
+                showView('statistics');
+            });
+
+            // Prediction button
+            $('runPredictions').addEventListener('click', runPredictions);
+
+            // Authentication
+            $('loginBtn').addEventListener('click', showLoginModal);
+            $('logoutBtn').addEventListener('click', handleLogout);
+            $('closeModalBtn').addEventListener('click', hideLoginModal);
+            $('loginForm').addEventListener('submit', handleLogin);
+
+            // Search and filter
+            $('searchMatches')?.addEventListener('input', filterMatches);
+            $('leagueFilter')?.addEventListener('change', filterMatches);
+
+            // Modal close on backdrop click
+            $('loginModal').addEventListener('click', (e) => {
+                if (e.target === $('loginModal')) {
+                    hideLoginModal();
+                }
+            });
+
+            // Random match button
+            $('addRandomMatchBtn')?.addEventListener('click', () => {
+                // Add random match logic
+                showNotification('Véletlenszerű mérkőzés hozzáadva!', 'success');
+            });
+        };
+
+        // Initialization
+        const initApp = () => {
+            // Load saved data
+            const savedUser = safeLocalStorage.get(CONFIG.STORAGE_KEYS.USER);
+            if (savedUser) {
+                try {
+                    appState.loggedInUser = JSON.parse(savedUser);
+                } catch (e) {
+                    console.warn('Failed to parse saved user data');
+                }
+            }
+
+            const savedRecent = safeLocalStorage.get(CONFIG.STORAGE_KEYS.RECENT);
+            if (savedRecent) {
+                try {
+                    appState.recentPredictions = JSON.parse(savedRecent);
+                } catch (e) {
+                    console.warn('Failed to parse saved recent predictions');
+                }
+            }
+
+            // Initialize UI
+            updateUserDisplay();
+            updateSelectedCount();
+            startTimer();
+            
+            // Set up event listeners
+            initEventListeners();
+
+            // Show initial view
+            showView('home');
+
+            console.log('WinMix Professional Football Prediction Platform initialized');
+        };
+
+        // Start the application when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initApp);
+
+        // Make functions globally available
+        window.handleTeamSelect = handleTeamSelect;
+        window.toggleFavorite = toggleFavorite;
+        window.sharePrediction = sharePrediction;
+    </script>
+</body>
+
+</html>
